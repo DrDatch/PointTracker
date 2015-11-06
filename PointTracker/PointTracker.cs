@@ -59,6 +59,13 @@ namespace PointTracker
             camListComboBox.DisplayMember = "Value";
             camListComboBox.ValueMember = "Key";
         }
+        private void setLabelValue(Label l, string value)
+        {
+            if (InvokeRequired)
+                Invoke(new Action(() => setLabelValue(l, value)));
+            else
+                l.Text = value;
+        }
         private void ProcessFrame(object sender, EventArgs arg)
         {
             Mat frame = new Mat();
@@ -81,10 +88,10 @@ namespace PointTracker
             if ((_thisTime - _currentTime)>300*10000)
             {
                 _fps = (_dFps*10000000 / (_thisTime - _currentTime));
-                fps.Text = _fps.ToString();
+                setLabelValue(fps, _fps.ToString());
                 _dFps = 1;
                 _currentTime = _thisTime;
-                frames.Text = _frames.ToString();
+                setLabelValue(frames, _frames.ToString());
             }
             else
             {
