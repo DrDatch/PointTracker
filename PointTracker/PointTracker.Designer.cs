@@ -37,10 +37,6 @@
             this.fps = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.frames = new System.Windows.Forms.Label();
-            this.gainBar = new System.Windows.Forms.TrackBar();
-            this.label2 = new System.Windows.Forms.Label();
-            this.exposureBar = new System.Windows.Forms.TrackBar();
-            this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.widthBox = new System.Windows.Forms.TextBox();
@@ -48,16 +44,8 @@
             this.label7 = new System.Windows.Forms.Label();
             this.fpsBox = new System.Windows.Forms.TextBox();
             this.label8 = new System.Windows.Forms.Label();
-            this.contrastBar = new System.Windows.Forms.TrackBar();
-            this.brigtnessBar = new System.Windows.Forms.TrackBar();
-            this.label9 = new System.Windows.Forms.Label();
-            this.label10 = new System.Windows.Forms.Label();
             this.consoleBox = new System.Windows.Forms.ListBox();
             ((System.ComponentModel.ISupportInitialize)(this.imageBox1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.gainBar)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.exposureBar)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.contrastBar)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.brigtnessBar)).BeginInit();
             this.SuspendLayout();
             // 
             // button1
@@ -134,48 +122,10 @@
             this.frames.TabIndex = 5;
             this.frames.Text = "0";
             // 
-            // gainBar
-            // 
-            this.gainBar.LargeChange = 1;
-            this.gainBar.Location = new System.Drawing.Point(366, 51);
-            this.gainBar.Maximum = 50;
-            this.gainBar.Name = "gainBar";
-            this.gainBar.Size = new System.Drawing.Size(210, 45);
-            this.gainBar.TabIndex = 6;
-            this.gainBar.Scroll += new System.EventHandler(this.gainBar_Scroll);
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(364, 32);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(29, 13);
-            this.label2.TabIndex = 7;
-            this.label2.Text = "Gain";
-            // 
-            // exposureBar
-            // 
-            this.exposureBar.LargeChange = 1;
-            this.exposureBar.Location = new System.Drawing.Point(366, 102);
-            this.exposureBar.Maximum = 50;
-            this.exposureBar.Name = "exposureBar";
-            this.exposureBar.Size = new System.Drawing.Size(210, 45);
-            this.exposureBar.TabIndex = 6;
-            this.exposureBar.Scroll += new System.EventHandler(this.exposureBar_Scroll);
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(364, 83);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(51, 13);
-            this.label4.TabIndex = 7;
-            this.label4.Text = "Exposure";
-            // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(364, 150);
+            this.label5.Location = new System.Drawing.Point(356, 15);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(35, 13);
             this.label5.TabIndex = 8;
@@ -184,7 +134,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(471, 150);
+            this.label6.Location = new System.Drawing.Point(463, 15);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(38, 13);
             this.label6.TabIndex = 8;
@@ -192,14 +142,14 @@
             // 
             // widthBox
             // 
-            this.widthBox.Location = new System.Drawing.Point(405, 147);
+            this.widthBox.Location = new System.Drawing.Point(397, 12);
             this.widthBox.Name = "widthBox";
             this.widthBox.Size = new System.Drawing.Size(60, 20);
             this.widthBox.TabIndex = 9;
             // 
             // heightBox
             // 
-            this.heightBox.Location = new System.Drawing.Point(515, 147);
+            this.heightBox.Location = new System.Drawing.Point(507, 12);
             this.heightBox.Name = "heightBox";
             this.heightBox.Size = new System.Drawing.Size(60, 20);
             this.heightBox.TabIndex = 9;
@@ -207,7 +157,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(364, 184);
+            this.label7.Location = new System.Drawing.Point(356, 49);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(27, 13);
             this.label7.TabIndex = 8;
@@ -215,7 +165,7 @@
             // 
             // fpsBox
             // 
-            this.fpsBox.Location = new System.Drawing.Point(405, 181);
+            this.fpsBox.Location = new System.Drawing.Point(397, 46);
             this.fpsBox.Name = "fpsBox";
             this.fpsBox.Size = new System.Drawing.Size(60, 20);
             this.fpsBox.TabIndex = 9;
@@ -228,46 +178,6 @@
             this.label8.Size = new System.Drawing.Size(45, 13);
             this.label8.TabIndex = 11;
             this.label8.Text = "Console";
-            // 
-            // contrastBar
-            // 
-            this.contrastBar.LargeChange = 1;
-            this.contrastBar.Location = new System.Drawing.Point(604, 51);
-            this.contrastBar.Maximum = 50;
-            this.contrastBar.Minimum = -50;
-            this.contrastBar.Name = "contrastBar";
-            this.contrastBar.Size = new System.Drawing.Size(210, 45);
-            this.contrastBar.TabIndex = 6;
-            this.contrastBar.Scroll += new System.EventHandler(this.contrastBar_Scroll);
-            // 
-            // brigtnessBar
-            // 
-            this.brigtnessBar.LargeChange = 1;
-            this.brigtnessBar.Location = new System.Drawing.Point(604, 102);
-            this.brigtnessBar.Maximum = 50;
-            this.brigtnessBar.Minimum = -50;
-            this.brigtnessBar.Name = "brigtnessBar";
-            this.brigtnessBar.Size = new System.Drawing.Size(210, 45);
-            this.brigtnessBar.TabIndex = 6;
-            this.brigtnessBar.Scroll += new System.EventHandler(this.brigtnessBar_Scroll);
-            // 
-            // label9
-            // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(601, 35);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(46, 13);
-            this.label9.TabIndex = 7;
-            this.label9.Text = "Contrast";
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(601, 86);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(50, 13);
-            this.label10.TabIndex = 7;
-            this.label10.Text = "Brigtness";
             // 
             // consoleBox
             // 
@@ -291,14 +201,6 @@
             this.Controls.Add(this.label6);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.label5);
-            this.Controls.Add(this.label10);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.label9);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.exposureBar);
-            this.Controls.Add(this.brigtnessBar);
-            this.Controls.Add(this.contrastBar);
-            this.Controls.Add(this.gainBar);
             this.Controls.Add(this.frames);
             this.Controls.Add(this.fps);
             this.Controls.Add(this.label3);
@@ -311,10 +213,6 @@
             this.Name = "PointTracker";
             this.Text = "PointTracker";
             ((System.ComponentModel.ISupportInitialize)(this.imageBox1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.gainBar)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.exposureBar)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.contrastBar)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.brigtnessBar)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -329,10 +227,6 @@
         private System.Windows.Forms.Label fps;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label frames;
-        private System.Windows.Forms.TrackBar gainBar;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TrackBar exposureBar;
-        private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox widthBox;
@@ -340,10 +234,6 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.TextBox fpsBox;
         private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.TrackBar contrastBar;
-        private System.Windows.Forms.TrackBar brigtnessBar;
-        private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.Label label10;
         private System.Windows.Forms.ListBox consoleBox;
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -19,35 +19,49 @@ namespace PointTracker
     public partial class PointTracker : Form
     {
         private Capture _capture = null;
-        DsDevice[] _sysCams = null;
+        private Mat frame = null;
+        private Mat frameProc = null;
+        private Mat frameHsv = null;
+        private Mat frameOut = null;
+        private Mat valFilter = null;
+        private DsDevice[] _sysCams = null;
         private int _camIndex;
         private bool _captureInProgress;
-        private int _frames=0;
+        private int _frames = 0;
         private long _currentTime;
         private long _fps;
         private int _dFps;
-        private int _gain;
-        private int _gainDef;
-        private int _exposure;
-        private int _exposureDef;
-        private int _brigtness;
-        private int _brigtnessDef;
-        private int _contrast;
-        private int _contrastDef;
         private double sfps = 30;
         private Int32 width = 640;
         private Int32 height = 480;
-        List<KeyValuePair<int, string>> camList = null;
+        private List<KeyValuePair<int, string>> camList = null;
+        private Mat[] hsv;
+        private Mat hsv_h;
+        private Mat hsv_s;
+        private Mat hsv_v;
+
+        private int Hmin = 0;
+        private int Hmax = 256;
+
+        private int Smin = 0;
+        private int Smax = 256;
+
+        private int Vmin = 0;
+        private int Vmax = 256;
+
+        private int HSVmax = 256;
+
         public PointTracker()
         {
             InitializeComponent();
             CvInvoke.UseOpenCL = false;
-            camList= new List<KeyValuePair<int, string>>();
+            camList = new List<KeyValuePair<int, string>>();
             _sysCams = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
             _camIndex = 0;
             imageBox1.SizeMode = PictureBoxSizeMode.Zoom;
-            foreach(DsDevice _camera in _sysCams){
-                camList.Add(new KeyValuePair<int, string>(_camIndex,_camera.Name));
+            foreach (DsDevice _camera in _sysCams)
+            {
+                camList.Add(new KeyValuePair<int, string>(_camIndex, _camera.Name));
                 _camIndex++;
             }
             _camIndex--;
@@ -55,46 +69,78 @@ namespace PointTracker
             camListComboBox.DataSource = null;
             camListComboBox.Items.Clear();
             // Забиваем значения в camListComboBox
-            camListComboBox.DataSource = new BindingSource(camList,null);
+            camListComboBox.DataSource = new BindingSource(camList, null);
             camListComboBox.DisplayMember = "Value";
             camListComboBox.ValueMember = "Key";
         }
+        private void setLabelValue(Label l, string value)
+        {
+            if (InvokeRequired)
+                Invoke(new Action(() => setLabelValue(l, value)));
+            else
+                l.Text = value;
+        }
+        private Mat inRangeImage(Mat hsvImage, int lower, int upper)
+        {
+            Mat resultImage = new Mat();
+            Mat lowerBorder = new Mat(hsvImage.Rows, hsvImage.Cols, DepthType.Cv8U, 3);
+            Mat upperBorder = new Mat(hsvImage.Rows, hsvImage.Cols, DepthType.Cv8U, 3);
+
+            lowerBorder.SetTo(new Gray(lower).MCvScalar);
+            upperBorder.SetTo(new Gray(upper).MCvScalar);
+
+            CvInvoke.InRange(hsvImage, lowerBorder, upperBorder, resultImage); // Crash is here!! <=======================
+
+            // Dispose the image due to causing memory leaking.
+            lowerBorder.Dispose();
+            upperBorder.Dispose();
+
+            return resultImage;
+
+        }
         private void ProcessFrame(object sender, EventArgs arg)
         {
-            Mat frame = new Mat();
+            frame = new Mat();
             _capture.Retrieve(frame, 0);
 
-            Mat frameProc = new Mat();
+            frameProc = new Mat();
             CvInvoke.CvtColor(frame, frameProc, ColorConversion.Bgr2Gray);
+            
+            frameHsv = new Mat();
+            CvInvoke.CvtColor(frame, frameHsv, ColorConversion.Bgr2Hsv);
 
-            double cannyThreshold = 180.0;
-            double circleAccumulatorThreshold = 120;
-            CircleF[] circles = CvInvoke.HoughCircles(frameProc, HoughType.Gradient, 2.0, 20.0, cannyThreshold, circleAccumulatorThreshold, 5);
-            foreach (CircleF circle in circles)
-                CvInvoke.Circle(frameProc, Point.Round(circle.Center), (int)circle.Radius, new Bgr(Color.Brown).MCvScalar, 2);
+            hsv = frameHsv.Split();
+            hsv_h = hsv[0];
+            hsv_s = hsv[1];
+            hsv_v = hsv[2];
 
+            frameOut = new Mat();
+
+            valFilter = inRangeImage(hsv_v, 50, 200);
+            
             imageBox1.Image = frameProc;
             _frames++;
             // Подсчёт FPS
             long _thisTime;
             _thisTime = DateTime.Now.Ticks;
-            if ((_thisTime - _currentTime)>300*10000)
+            if ((_thisTime - _currentTime) > 300 * 10000)
             {
-                _fps = (_dFps*10000000 / (_thisTime - _currentTime));
-                fps.Text = _fps.ToString();
+                _fps = (_dFps * 10000000 / (_thisTime - _currentTime));
+                setLabelValue(fps, _fps.ToString());
                 _dFps = 1;
                 _currentTime = _thisTime;
-                frames.Text = _frames.ToString();
+                setLabelValue(frames, _frames.ToString());
             }
             else
             {
                 _dFps++;
             }
         }
-       private void printConsole(string line){
-           consoleBox.Items.Add(line);
-           consoleBox.SelectedIndex = consoleBox.Items.Count - 1;
-           consoleBox.SelectedIndex = -1;
+        private void printConsole(string line)
+        {
+            consoleBox.Items.Add(line);
+            consoleBox.SelectedIndex = consoleBox.Items.Count - 1;
+            consoleBox.SelectedIndex = -1;
         }
         private void button1_Click(object sender, EventArgs e)
         {
@@ -141,7 +187,7 @@ namespace PointTracker
                 {
                     widthBox.Text = width.ToString();
                     heightBox.Text = height.ToString();
-                    printConsole("Frame size set automaticaly: " + widthBox.Text + " x " + heightBox.Text+ "\n");
+                    printConsole("Frame size set automaticaly: " + widthBox.Text + " x " + heightBox.Text + "\n");
                 }
                 else
                 {
@@ -173,50 +219,24 @@ namespace PointTracker
                 {
                     _capture.Dispose();
                 }
-                _capture = new Capture(_camIndex);
+                //_capture = new Capture(_camIndex);
                 GetCaptureInfo();
-                _capture.Dispose();
+                //_capture.Dispose();
             }
         }
         private void GetCaptureInfo()
         {
             printConsole("Camera: " + camList[_camIndex].Value + "\n");  //Camera name
-            gainBar.Value = _gain = (int)_capture.GetCaptureProperty(Emgu.CV.CvEnum.CapProp.Gain);
+
+            /*gainBar.Value = _gain = (int)_capture.GetCaptureProperty(Emgu.CV.CvEnum.CapProp.Gain);
             printConsole("Gain " + _gain.ToString() + "\n");
             exposureBar.Value = _exposure = (int)_capture.GetCaptureProperty(Emgu.CV.CvEnum.CapProp.Exposure);
             printConsole("Exposure " + _exposure.ToString() + "\n");
             contrastBar.Value = _contrast = (int)_capture.GetCaptureProperty(Emgu.CV.CvEnum.CapProp.Contrast);
             printConsole("Contrast " + _contrast.ToString() + "\n");
             brigtnessBar.Value = _brigtness = (int)_capture.GetCaptureProperty(Emgu.CV.CvEnum.CapProp.Brightness);
-            printConsole("Brigtness " + _brigtness.ToString() + "\n");
-            
-        }
+            printConsole("Brigtness " + _brigtness.ToString() + "\n");*/
 
-        private void gainBar_Scroll(object sender, EventArgs e)
-        {
-             _gain = gainBar.Value;
-             _capture.SetCaptureProperty(Emgu.CV.CvEnum.CapProp.Gain,_gain);
-        }
-
-        private void exposureBar_Scroll(object sender, EventArgs e)
-        {
-             _exposure = exposureBar.Value;
-             _capture.SetCaptureProperty(Emgu.CV.CvEnum.CapProp.Exposure,_exposure);
-
-        }
-
-        private void contrastBar_Scroll(object sender, EventArgs e)
-        {
-             _contrast = contrastBar.Value;
-             _capture.SetCaptureProperty(Emgu.CV.CvEnum.CapProp.Contrast,_contrast);
-
-        }
-
-        private void brigtnessBar_Scroll(object sender, EventArgs e)
-        {
-             _brigtness = brigtnessBar.Value;
-             _capture.SetCaptureProperty(Emgu.CV.CvEnum.CapProp.Brightness,_brigtness);
-             
         }
     }
 }
