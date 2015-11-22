@@ -82,9 +82,9 @@ namespace PointTracker
         }
         private Mat inRangeImage(Mat hsvImage, int lower, int upper)
         {
-            Mat resultImage = new Mat();
-            Mat lowerBorder = new Mat(hsvImage.Rows, hsvImage.Cols, DepthType.Cv8U, 3);
-            Mat upperBorder = new Mat(hsvImage.Rows, hsvImage.Cols, DepthType.Cv8U, 3);
+            Mat resultImage = new Mat(hsvImage.Rows, hsvImage.Cols, DepthType.Cv8S, 3);
+            Mat lowerBorder = new Mat(hsvImage.Rows, hsvImage.Cols, DepthType.Cv8S, 3);
+            Mat upperBorder = new Mat(hsvImage.Rows, hsvImage.Cols, DepthType.Cv8S, 3);
 
             lowerBorder.SetTo(new Gray(lower).MCvScalar);
             upperBorder.SetTo(new Gray(upper).MCvScalar);
@@ -116,9 +116,9 @@ namespace PointTracker
 
             frameOut = new Mat();
 
-            valFilter = inRangeImage(hsv_v, 50, 200);
+            valFilter = inRangeImage(frameHsv, 50, 200);
             
-            imageBox1.Image = frameProc;
+            imageBox1.Image = valFilter;
             _frames++;
             // Подсчёт FPS
             long _thisTime;
