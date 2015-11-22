@@ -45,7 +45,12 @@
             this.fpsBox = new System.Windows.Forms.TextBox();
             this.label8 = new System.Windows.Forms.Label();
             this.consoleBox = new System.Windows.Forms.ListBox();
+            this.trackVal = new System.Windows.Forms.TrackBar();
+            this.label2 = new System.Windows.Forms.Label();
+            this.trackValMax = new System.Windows.Forms.TrackBar();
             ((System.ComponentModel.ISupportInitialize)(this.imageBox1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackVal)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackValMax)).BeginInit();
             this.SuspendLayout();
             // 
             // button1
@@ -187,12 +192,44 @@
             this.consoleBox.Size = new System.Drawing.Size(450, 147);
             this.consoleBox.TabIndex = 12;
             // 
+            // trackVal
+            // 
+            this.trackVal.LargeChange = 20;
+            this.trackVal.Location = new System.Drawing.Point(359, 95);
+            this.trackVal.Maximum = 255;
+            this.trackVal.Name = "trackVal";
+            this.trackVal.Size = new System.Drawing.Size(208, 45);
+            this.trackVal.TabIndex = 13;
+            this.trackVal.Value = 180;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(364, 79);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(34, 13);
+            this.label2.TabIndex = 14;
+            this.label2.Text = "Value";
+            // 
+            // trackValMax
+            // 
+            this.trackValMax.LargeChange = 20;
+            this.trackValMax.Location = new System.Drawing.Point(359, 146);
+            this.trackValMax.Maximum = 255;
+            this.trackValMax.Name = "trackValMax";
+            this.trackValMax.Size = new System.Drawing.Size(208, 45);
+            this.trackValMax.TabIndex = 13;
+            this.trackValMax.Value = 200;
+            // 
             // PointTracker
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
             this.ClientSize = new System.Drawing.Size(829, 425);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.trackValMax);
+            this.Controls.Add(this.trackVal);
             this.Controls.Add(this.consoleBox);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.heightBox);
@@ -213,6 +250,8 @@
             this.Name = "PointTracker";
             this.Text = "PointTracker";
             ((System.ComponentModel.ISupportInitialize)(this.imageBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackVal)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackValMax)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -235,6 +274,9 @@
         private System.Windows.Forms.TextBox fpsBox;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.ListBox consoleBox;
+        private System.Windows.Forms.TrackBar trackVal;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TrackBar trackValMax;
     }
 }
 

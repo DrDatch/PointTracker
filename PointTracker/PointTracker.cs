@@ -23,7 +23,6 @@ namespace PointTracker
         private Mat frameProc = null;
         private Mat frameHsv = null;
         private Mat frameOut = null;
-        private Mat valFilter = null;
         private DsDevice[] _sysCams = null;
         private int _camIndex;
         private bool _captureInProgress;
@@ -80,11 +79,20 @@ namespace PointTracker
             else
                 l.Text = value;
         }
+        private int getTrackVal(TrackBar bar)
+        {
+            int res=0;
+            if (InvokeRequired)
+                Invoke(new Action(() => res = getTrackVal(bar)));
+            else
+                res = bar.Value;
+            return res;
+        }
         private Mat inRangeImage(Mat hsvImage, int lower, int upper)
         {
-            Mat resultImage = new Mat(hsvImage.Rows, hsvImage.Cols, DepthType.Cv8S, 3);
-            Mat lowerBorder = new Mat(hsvImage.Rows, hsvImage.Cols, DepthType.Cv8S, 3);
-            Mat upperBorder = new Mat(hsvImage.Rows, hsvImage.Cols, DepthType.Cv8S, 3);
+            Mat resultImage = new Mat(hsvImage.Rows, hsvImage.Cols, hsvImage.Depth, hsvImage.NumberOfChannels);
+            Mat lowerBorder = new Mat(hsvImage.Rows, hsvImage.Cols, hsvImage.Depth, hsvImage.NumberOfChannels);
+            Mat upperBorder = new Mat(hsvImage.Rows, hsvImage.Cols, hsvImage.Depth, hsvImage.NumberOfChannels);
 
             lowerBorder.SetTo(new Gray(lower).MCvScalar);
             upperBorder.SetTo(new Gray(upper).MCvScalar);
@@ -102,9 +110,6 @@ namespace PointTracker
         {
             frame = new Mat();
             _capture.Retrieve(frame, 0);
-
-            frameProc = new Mat();
-            CvInvoke.CvtColor(frame, frameProc, ColorConversion.Bgr2Gray);
             
             frameHsv = new Mat();
             CvInvoke.CvtColor(frame, frameHsv, ColorConversion.Bgr2Hsv);
@@ -114,11 +119,13 @@ namespace PointTracker
             hsv_s = hsv[1];
             hsv_v = hsv[2];
 
-            frameOut = new Mat();
-
-            valFilter = inRangeImage(frameHsv, 50, 200);
+            Mat valFilter = new Mat(frame.Rows, frame.Cols, frame.Depth, frame.NumberOfChannels);
+            
+            valFilter = inRangeImage(hsv_v, getTrackVal(trackVal), getTrackVal(trackValMax));
             
             imageBox1.Image = valFilter;
+
+
             _frames++;
             // Подсчёт FPS
             long _thisTime;
@@ -135,6 +142,11 @@ namespace PointTracker
             {
                 _dFps++;
             }
+
+            // Killing all Mat
+            frame.Dispose();
+            frameHsv.Dispose();
+            valFilter.Dispose();
         }
         private void printConsole(string line)
         {
