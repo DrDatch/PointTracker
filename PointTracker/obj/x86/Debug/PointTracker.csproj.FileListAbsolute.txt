@@ -46,5 +46,5 @@ C:\Users\Datch\Documents\Visual Studio 2013\Projects\PointTracker\PointTracker\o
 C:\Users\Datch\Documents\Visual Studio 2013\Projects\PointTracker\PointTracker\bin\x86\Debug\Emgu.CV.Contrib.pdb
 C:\Users\Datch\Documents\Visual Studio 2013\Projects\PointTracker\PointTracker\bin\x86\Debug\Emgu.CV.OCR.pdb
 C:\Users\Datch\Documents\Visual Studio 2013\Projects\PointTracker\PointTracker\bin\x86\Debug\Emgu.CV.Stitching.pdb
-C:\Users\Datch\Documents\Visual Studio 2013\Projects\PointTracker\PointTracker\obj\x86\Debug\PointTracker.csprojResolveAssemblyReference.cache
 C:\Users\Datch\Documents\Visual Studio 2013\Projects\PointTracker\PointTracker\bin\x86\Debug\DirectShowLib-2005.dll
+C:\Users\Datch\Documents\Visual Studio 2013\Projects\PointTracker\PointTracker\obj\x86\Debug\PointTracker.csprojResolveAssemblyReference.cache

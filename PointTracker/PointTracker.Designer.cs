@@ -201,6 +201,7 @@
             this.trackVal.Size = new System.Drawing.Size(208, 45);
             this.trackVal.TabIndex = 13;
             this.trackVal.Value = 180;
+            this.trackVal.Scroll += new System.EventHandler(this.trackVal_Scroll);
             // 
             // label2
             // 
@@ -220,6 +221,7 @@
             this.trackValMax.Size = new System.Drawing.Size(208, 45);
             this.trackValMax.TabIndex = 13;
             this.trackValMax.Value = 200;
+            this.trackValMax.Scroll += new System.EventHandler(this.trackValMax_Scroll);
             // 
             // PointTracker
             // 
@@ -246,6 +248,7 @@
             this.Controls.Add(this.imageBox1);
             this.Controls.Add(this.button1);
             this.Cursor = System.Windows.Forms.Cursors.Default;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "PointTracker";
             this.Text = "PointTracker";

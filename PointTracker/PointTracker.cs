@@ -23,8 +23,12 @@ namespace PointTracker
         private Mat frameProc = null;
         private Mat frameHsv = null;
         private Mat frameOut = null;
+        private Mat valFilter = null;
+        private int[,,] arr = null;
         private DsDevice[] _sysCams = null;
         private int _camIndex;
+        private int Val;
+        private int ValMax;
         private bool _captureInProgress;
         private int _frames = 0;
         private long _currentTime;
@@ -34,25 +38,17 @@ namespace PointTracker
         private Int32 width = 640;
         private Int32 height = 480;
         private List<KeyValuePair<int, string>> camList = null;
-        private Mat[] hsv;
-        private Mat hsv_h;
-        private Mat hsv_s;
         private Mat hsv_v;
 
-        private int Hmin = 0;
-        private int Hmax = 256;
-
-        private int Smin = 0;
-        private int Smax = 256;
-
-        private int Vmin = 0;
-        private int Vmax = 256;
-
-        private int HSVmax = 256;
 
         public PointTracker()
         {
+            frame = new Mat();
+            frameHsv = new Mat();
+            valFilter = new Mat();
             InitializeComponent();
+            Val = trackVal.Value;
+            ValMax = trackValMax.Value;
             CvInvoke.UseOpenCL = false;
             camList = new List<KeyValuePair<int, string>>();
             _sysCams = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
@@ -79,7 +75,7 @@ namespace PointTracker
             else
                 l.Text = value;
         }
-        private int getTrackVal(TrackBar bar)
+        /*private int getTrackVal(TrackBar bar)
         {
             int res=0;
             if (InvokeRequired)
@@ -87,43 +83,310 @@ namespace PointTracker
             else
                 res = bar.Value;
             return res;
-        }
-        private Mat inRangeImage(Mat hsvImage, int lower, int upper)
+        }*/
+        private void inRangeImage(Mat hsvImage, int lower, int upper, Mat outImage)
         {
-            Mat resultImage = new Mat(hsvImage.Rows, hsvImage.Cols, hsvImage.Depth, hsvImage.NumberOfChannels);
             Mat lowerBorder = new Mat(hsvImage.Rows, hsvImage.Cols, hsvImage.Depth, hsvImage.NumberOfChannels);
             Mat upperBorder = new Mat(hsvImage.Rows, hsvImage.Cols, hsvImage.Depth, hsvImage.NumberOfChannels);
 
             lowerBorder.SetTo(new Gray(lower).MCvScalar);
             upperBorder.SetTo(new Gray(upper).MCvScalar);
 
-            CvInvoke.InRange(hsvImage, lowerBorder, upperBorder, resultImage); // Crash is here!! <=======================
+            CvInvoke.InRange(hsvImage, lowerBorder, upperBorder, outImage);
 
             // Dispose the image due to causing memory leaking.
             lowerBorder.Dispose();
             upperBorder.Dispose();
+            
+        }
+        /*private int[,,] getArray(Mat Image)// Get array from Mat image
+        {
+            int cols = 0, rows = 0, chan = 0, k=0;
+            chan = Image.NumberOfChannels;
+            cols = Image.Cols;
+            rows = Image.Rows;
 
-            return resultImage;
+            int[,,] arrIn = new int[cols, rows, chan];
 
+            byte[] data = new byte[cols * rows * chan];
+            data = Image.GetData();
+
+            for (int i = chan - 1; i < rows * cols * chan; i += chan)
+            {
+                for (int j = 0; j < chan; j++)
+                {
+                    arrIn[(i/chan)%cols,(i/chan)/cols,j]=data[i-j];
+                }
+            }
+
+            return arrIn;
+        }
+        private void setArray(int[,,] arrIn, Mat Image)// Set array to Mat image
+        {
+            int cols = 0, rows = 0, chan = 0;
+            chan = Image.NumberOfChannels;
+            cols = Image.Cols;
+            rows = Image.Rows;
+
+
+            byte[] data = new byte[cols * rows * chan];
+            data = Image.GetData();
+
+            for (int i = chan - 1; i < rows * cols * chan; i += chan)
+            {
+                for (int j = 0; j < chan; j++)
+                {
+                    data[i - j] = Convert.ToByte(arrIn[(i / chan) % cols, (i / chan) / cols, j]);
+                }
+            }
+            Image.SetTo(data);
+        }*/
+        private void addFilter(Mat mainImage, Mat addImage)
+        {
+            int mainC = 0, mainR = 0, addC = 0, addR = 0, mainChan=0, addChan=0;
+            mainChan = mainImage.NumberOfChannels;
+            addChan = addImage.NumberOfChannels;
+
+            mainC = mainImage.Cols;
+            addC = addImage.Cols;
+            mainR = mainImage.Rows;
+            addR = addImage.Rows;
+
+            /*int[, ,] mainArr = getArray(mainImage);// addFilter with getArray and setArray
+            int[, ,] addArr = getArray(addImage);
+
+            for (int i = 0; i < mainC; i++)
+            {
+                for (int j = 0; j < mainR; j++ )
+                {
+                    
+                    if (addArr[i, j, 0] == 255)
+                    {
+                        mainArr[i, j, 0] = 0;
+                        mainArr[i, j, 1] = 0;
+                        mainArr[i, j, 2] = 255;
+
+                    }
+                }
+            }
+
+            setArray(mainArr, mainImage);*/
+
+            byte[] data = new byte[mainC * mainR * mainChan];
+            data = mainImage.GetData();
+
+            byte[] addData = new byte[addC * addR * addChan];
+            addData = addImage.GetData();
+
+
+            for (int i = mainChan - 1; i < mainR * mainC * mainChan; i += mainChan)
+            {
+                if (addData[i * addChan / mainChan] == 255)
+                {
+                    data[i] = 0;
+                    data[i - 1] = 0;
+                    data[i - 2] = 255;
+                }
+                if (addData[i * addChan / mainChan] == 1)
+                {
+                    data[i] = 255;
+                    data[i - 1] = 0;
+                    data[i - 2] = 0;
+                }
+                if (addData[i * addChan / mainChan] == 2)
+                {
+                    data[i] = 0;
+                    data[i - 1] = 255;
+                    data[i - 2] = 0;
+                }
+                if (addData[i * addChan / mainChan] == 3)
+                {
+                    data[i] = 255;
+                    data[i - 1] = 255;
+                    data[i - 2] = 0;
+                }
+                if (addData[i * addChan / mainChan] == 240)
+                {
+                    data[i] = 255;
+                    data[i - 1] = 255;
+                    data[i - 2] = 255;
+                }
+            }
+
+
+            mainImage.SetTo(data);
+            
         }
         private void ProcessFrame(object sender, EventArgs arg)
         {
-            frame = new Mat();
             _capture.Retrieve(frame, 0);
             
-            frameHsv = new Mat();
             CvInvoke.CvtColor(frame, frameHsv, ColorConversion.Bgr2Hsv);
 
-            hsv = frameHsv.Split();
-            hsv_h = hsv[0];
-            hsv_s = hsv[1];
-            hsv_v = hsv[2];
+            hsv_v = frameHsv.Split()[2];
 
-            Mat valFilter = new Mat(frame.Rows, frame.Cols, frame.Depth, frame.NumberOfChannels);
+            inRangeImage(hsv_v, Val, ValMax, valFilter);// Get filtered image
+
+
+            int size, pSize;
+            size = 20;
+            pSize = 10;
+            int cols, rows;
+            int mat;
+            cols = valFilter.Cols;
+            rows = valFilter.Rows;
+
+            mat = cols * rows;
+            byte[] data = new byte[mat];
+            byte[] dataOut = new byte[mat];
+            data = valFilter.GetData();
+            dataOut = valFilter.GetData();
+
+            int sum;
+            bool inPoint;
+
+            byte k=1;
             
-            valFilter = inRangeImage(hsv_v, getTrackVal(trackVal), getTrackVal(trackValMax));
-            
-            imageBox1.Image = valFilter;
+            inPoint = true;
+            int points;
+
+            while (inPoint && k<=3)
+            {
+                inPoint = false;
+                points = 0;
+                int inc = 1;
+                for (int i = 0; i < mat && i>=0 || i == mat && Convert.ToBoolean(inc=-inc) && Convert.ToBoolean(i--); i+=inc)
+                {
+                    if (data[i] == 255 && !inPoint)
+                    {
+                        data[i] = k;
+                        inPoint = true;
+                        for (int j = 0; j < size; j++)
+                        {
+                            for (int l = 0; l < size; l++)
+                            {
+                                if (i + cols * size + size > 0 && i + cols * size + size < mat)
+                                {
+                                    if (data[i + cols * size + size] != 255)
+                                    {
+                                        inPoint = false;
+                                        data[i] = 0;
+                                    }
+                                }
+                            }
+                        }
+                        if(inPoint) points++;
+                    }
+                    if (data[i] == k)
+                    {
+                        if (i + 1 < mat && data[i + 1] == 255)
+                        {
+                            data[i + 1] = k;
+                            points++;
+                        }
+                        if (i - 1 > 0 && data[i - 1] == 255)
+                        {
+                            data[i - 1] = k;
+                            points++;
+                        }
+                        if (i + cols < mat && data[i + cols] == 255)
+                        {
+                            data[i + cols] = k;
+                            points++;
+                        }
+                        if (i - cols > 0 && data[i - cols] == 255)
+                        {
+                            data[i - cols] = k;
+                            points++;
+                        }
+                        if (i + cols + 1 < mat && data[i + cols + 1] == 255)
+                        {
+                            data[i + cols + 1] = k;
+                            points++;
+                        }
+                        if (i + cols - 1 < mat && data[i + cols - 1] == 255)
+                        {
+                            data[i + cols - 1] = k;
+                            points++;
+                        }
+                        if (i - cols + 1 > 0 && data[i - cols + 1] == 255)
+                        {
+                            data[i - cols + 1] = k;
+                            points++;
+                        }
+                        if (i - cols - 1 > 0 && data[i - cols - 1] == 255)
+                        {
+                            data[i - cols - 1] = k;
+                            points++;
+                        }
+                    }
+                }
+                k++;
+            }
+
+            bool isCir;
+            int  y, x, my, mx;
+            int[] height, width, ys, xs;
+
+            height = new int[k + 1];
+            width = new int[k + 1];
+            ys = new int[k + 1];
+            xs = new int[k + 1];
+
+            for (int j = 1; j <= k; j++)
+            {
+                xs[j]=0;
+                ys[j]=0;
+                width[j] =0;
+                height[j] =0;
+
+                for (int i = 0; i < (cols) * (rows); i++)
+                {
+                    if (data[i] == j)
+                    {
+                        isCir = true;
+                        x = i % (cols);
+                        y = i / (cols);
+                        xs[j]++;
+                        ys[j]++;
+                        width[j] += x;
+                        height[j] += y;
+                    }
+                    /*else
+                    {
+                        data[i] = 0;
+                    }*/
+                }
+            }
+
+            for (int l = 1; l <= k; l++)
+            {
+                if (xs[l] > 0 && ys[l] > 0)
+                {
+                    mx = width[l] / xs[l];
+                    my = height[l] / ys[l];
+                    for (int i = 0; i < pSize; i++)
+                    {
+                        for (int j = 0; j < pSize; j++)
+                        {
+                            if (((my + i - pSize / 2) * cols + mx + j - pSize / 2) < cols * rows && ((my + i - pSize / 2) * cols + mx + j - pSize / 2) > 0)
+                            {
+                                dataOut[((my + i - pSize / 2) * cols + mx + j - pSize / 2)] = 240;
+                            }
+                        }
+                    }
+
+                }
+            }
+
+            valFilter.SetTo(dataOut);
+
+
+            addFilter(frame, valFilter);
+
+            //frameOut = new Mat();
+
+            imageBox1.Image = frame;
 
 
             _frames++;
@@ -144,9 +407,9 @@ namespace PointTracker
             }
 
             // Killing all Mat
-            frame.Dispose();
+            /*frame.Dispose();
             frameHsv.Dispose();
-            valFilter.Dispose();
+            valFilter.Dispose();*/
         }
         private void printConsole(string line)
         {
@@ -249,6 +512,16 @@ namespace PointTracker
             brigtnessBar.Value = _brigtness = (int)_capture.GetCaptureProperty(Emgu.CV.CvEnum.CapProp.Brightness);
             printConsole("Brigtness " + _brigtness.ToString() + "\n");*/
 
+        }
+
+        private void trackVal_Scroll(object sender, EventArgs e)
+        {
+            Val = trackVal.Value;
+        }
+
+        private void trackValMax_Scroll(object sender, EventArgs e)
+        {
+            ValMax = trackValMax.Value;
         }
     }
 }
