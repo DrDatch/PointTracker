@@ -66,7 +66,6 @@
             // imageBox1
             // 
             this.imageBox1.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.imageBox1.FunctionalMode = Emgu.CV.UI.ImageBox.FunctionalModeOption.RightClickMenu;
             this.imageBox1.Location = new System.Drawing.Point(12, 12);
             this.imageBox1.MaximumSize = new System.Drawing.Size(320, 240);
             this.imageBox1.MinimumSize = new System.Drawing.Size(320, 240);
@@ -187,7 +186,7 @@
             // consoleBox
             // 
             this.consoleBox.FormattingEnabled = true;
-            this.consoleBox.Location = new System.Drawing.Point(364, 266);
+            this.consoleBox.Location = new System.Drawing.Point(367, 266);
             this.consoleBox.Name = "consoleBox";
             this.consoleBox.Size = new System.Drawing.Size(450, 147);
             this.consoleBox.TabIndex = 12;

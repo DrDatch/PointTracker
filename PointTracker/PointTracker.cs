@@ -34,6 +34,7 @@ namespace PointTracker
         private long _currentTime;
         private long _fps;
         private int _dFps;
+        private int size, pSize;
         private double sfps = 30;
         private Int32 width = 640;
         private Int32 height = 480;
@@ -43,6 +44,8 @@ namespace PointTracker
 
         public PointTracker()
         {
+            size = 20;
+            pSize = 20;
             frame = new Mat();
             frameHsv = new Mat();
             valFilter = new Mat();
@@ -84,7 +87,7 @@ namespace PointTracker
                 res = bar.Value;
             return res;
         }*/
-        private void inRangeImage(Mat hsvImage, int lower, int upper, Mat outImage)
+        /*private void inRangeImage(Mat hsvImage, int lower, int upper, Mat outImage)
         {
             Mat lowerBorder = new Mat(hsvImage.Rows, hsvImage.Cols, hsvImage.Depth, hsvImage.NumberOfChannels);
             Mat upperBorder = new Mat(hsvImage.Rows, hsvImage.Cols, hsvImage.Depth, hsvImage.NumberOfChannels);
@@ -98,7 +101,7 @@ namespace PointTracker
             lowerBorder.Dispose();
             upperBorder.Dispose();
             
-        }
+        }*/
         /*private int[,,] getArray(Mat Image)// Get array from Mat image
         {
             int cols = 0, rows = 0, chan = 0, k=0;
@@ -141,7 +144,7 @@ namespace PointTracker
             }
             Image.SetTo(data);
         }*/
-        private void addFilter(Mat mainImage, Mat addImage)
+        /*private void addFilter(Mat mainImage, Mat addImage)
         {
             int mainC = 0, mainR = 0, addC = 0, addR = 0, mainChan=0, addChan=0;
             mainChan = mainImage.NumberOfChannels;
@@ -151,26 +154,6 @@ namespace PointTracker
             addC = addImage.Cols;
             mainR = mainImage.Rows;
             addR = addImage.Rows;
-
-            /*int[, ,] mainArr = getArray(mainImage);// addFilter with getArray and setArray
-            int[, ,] addArr = getArray(addImage);
-
-            for (int i = 0; i < mainC; i++)
-            {
-                for (int j = 0; j < mainR; j++ )
-                {
-                    
-                    if (addArr[i, j, 0] == 255)
-                    {
-                        mainArr[i, j, 0] = 0;
-                        mainArr[i, j, 1] = 0;
-                        mainArr[i, j, 2] = 255;
-
-                    }
-                }
-            }
-
-            setArray(mainArr, mainImage);*/
 
             byte[] data = new byte[mainC * mainR * mainChan];
             data = mainImage.GetData();
@@ -216,21 +199,18 @@ namespace PointTracker
 
             mainImage.SetTo(data);
             
-        }
+        }*/
         private void ProcessFrame(object sender, EventArgs arg)
         {
             _capture.Retrieve(frame, 0);
             
             CvInvoke.CvtColor(frame, frameHsv, ColorConversion.Bgr2Hsv);
 
-            hsv_v = frameHsv.Split()[2];
+            valFilter = frameHsv.Split()[2];
 
-            inRangeImage(hsv_v, Val, ValMax, valFilter);// Get filtered image
+            //inRangeImage(hsv_v, Val, ValMax, valFilter);// Get filtered image
 
 
-            int size, pSize;
-            size = 20;
-            pSize = 10;
             int cols, rows;
             int mat;
             cols = valFilter.Cols;
@@ -238,9 +218,25 @@ namespace PointTracker
 
             mat = cols * rows;
             byte[] data = new byte[mat];
+            byte[] dataFil = new byte[mat];
             byte[] dataOut = new byte[mat];
             data = valFilter.GetData();
-            dataOut = valFilter.GetData();
+            dataFil = valFilter.GetData();
+            dataOut = frame.GetData();
+
+            for (int i = 0; i < mat; i++)
+            {
+                if (data[i] >= Val && data[i] <= ValMax)
+                {
+                    data[i] = 255;
+                    dataFil[i] = 255;
+                }
+                else
+                {
+                    data[i] = 0;
+                    dataFil[i] = 0;
+                }
+            }
 
             int sum;
             bool inPoint;
@@ -248,92 +244,91 @@ namespace PointTracker
             byte k=1;
             
             inPoint = true;
-            int points;
+            int points, maxPoints;
+            int y, x, my, mx;
+            int[] height, width, ys, xs;
 
-            while (inPoint && k<=3)
+            maxPoints = 3;
+
+            height = new int[2];
+            width = new int[2];
+            ys = new int[2];
+            xs = new int[2];
+            bool kek;
+            kek = true;
+            while (inPoint && k <= maxPoints)
             {
                 inPoint = false;
                 points = 0;
                 int inc = 1;
+                xs[k] = 0;
+                ys[k] = 0;
+                width[k] = 0;
+                height[k] = 0;
                 for (int i = 0; i < mat && i>=0 || i == mat && Convert.ToBoolean(inc=-inc) && Convert.ToBoolean(i--); i+=inc)
                 {
                     if (data[i] == 255 && !inPoint)
                     {
-                        data[i] = k;
+
                         inPoint = true;
                         for (int j = 0; j < size; j++)
                         {
                             for (int l = 0; l < size; l++)
                             {
-                                if (i + cols * size + size > 0 && i + cols * size + size < mat)
+                                if (!(i + cols * j * inc + l * inc > 0 && i + cols * j * inc + l * inc < mat && (i % cols + l * inc) < cols && (i % cols + l * inc) >= 0) || (data[i + cols * j * inc + l * inc] != 255))
                                 {
-                                    if (data[i + cols * size + size] != 255)
-                                    {
                                         inPoint = false;
-                                        data[i] = 0;
-                                    }
                                 }
+                                /*if (!(((i + cols * j * inc + l * inc) % cols) * inc >= (i % cols) * inc && ((i + cols * j * inc + l * inc) / cols) * inc >= (i / cols) * inc))
+                                {
+                                    inPoint = false;
+                                }*/
+                                if (!inPoint) break;
                             }
+                            if (!inPoint) break;
                         }
-                        if(inPoint) points++;
+                        if (inPoint) { 
+                            points++; 
+                            data[i] = k;
+                        }
                     }
                     if (data[i] == k)
                     {
-                        if (i + 1 < mat && data[i + 1] == 255)
+                        for (int j = -1; j <= 1; j++)
                         {
-                            data[i + 1] = k;
-                            points++;
+                            for (int l = -1; l <= 1; l++)
+                            {
+                                if ((l!=0 || j!=0) && (i + cols * j + l > 0 && i + cols * j + l < mat && (i % cols  + l) < cols && (i % cols  + l) >= 0 && (data[i + cols * j + l] == 255)))
+                                {
+                                    data[i + cols * j + l] = k;
+                                    points++;
+                                }
+                            }
                         }
-                        if (i - 1 > 0 && data[i - 1] == 255)
+                        if (i > 0)
                         {
-                            data[i - 1] = k;
-                            points++;
-                        }
-                        if (i + cols < mat && data[i + cols] == 255)
-                        {
-                            data[i + cols] = k;
-                            points++;
-                        }
-                        if (i - cols > 0 && data[i - cols] == 255)
-                        {
-                            data[i - cols] = k;
-                            points++;
-                        }
-                        if (i + cols + 1 < mat && data[i + cols + 1] == 255)
-                        {
-                            data[i + cols + 1] = k;
-                            points++;
-                        }
-                        if (i + cols - 1 < mat && data[i + cols - 1] == 255)
-                        {
-                            data[i + cols - 1] = k;
-                            points++;
-                        }
-                        if (i - cols + 1 > 0 && data[i - cols + 1] == 255)
-                        {
-                            data[i - cols + 1] = k;
-                            points++;
-                        }
-                        if (i - cols - 1 > 0 && data[i - cols - 1] == 255)
-                        {
-                            data[i - cols - 1] = k;
-                            points++;
+                            x = i % (cols);
+                            y = i / (cols);
+                            xs[k]++;
+                            ys[k]++;
+                            width[k] += x;
+                            height[k] += y;
                         }
                     }
                 }
                 k++;
+                if (k <= maxPoints)
+                {
+                    Array.Resize(ref xs, xs.Length + 1);
+                    Array.Resize(ref ys, ys.Length + 1);
+                    Array.Resize(ref width, width.Length + 1);
+                    Array.Resize(ref height, height.Length + 1);
+                }
             }
 
             bool isCir;
-            int  y, x, my, mx;
-            int[] height, width, ys, xs;
 
-            height = new int[k + 1];
-            width = new int[k + 1];
-            ys = new int[k + 1];
-            xs = new int[k + 1];
-
-            for (int j = 1; j <= k; j++)
+            /*for (int j = 1; j <= k; j++)
             {
                 xs[j]=0;
                 ys[j]=0;
@@ -352,37 +347,83 @@ namespace PointTracker
                         width[j] += x;
                         height[j] += y;
                     }
-                    /*else
-                    {
-                        data[i] = 0;
-                    }*/
                 }
-            }
+            }*/
 
-            for (int l = 1; l <= k; l++)
+            for (int l = 1; l < k; l++)
             {
                 if (xs[l] > 0 && ys[l] > 0)
                 {
                     mx = width[l] / xs[l];
                     my = height[l] / ys[l];
-                    for (int i = 0; i < pSize; i++)
+                    for (int i = -pSize; i <= pSize; i++)
                     {
-                        for (int j = 0; j < pSize; j++)
+                        int j = 0;
+                        if (((my + i) * cols + mx + j) < cols * rows && ((my + i) * cols + mx + j) > 0)
                         {
-                            if (((my + i - pSize / 2) * cols + mx + j - pSize / 2) < cols * rows && ((my + i - pSize / 2) * cols + mx + j - pSize / 2) > 0)
-                            {
-                                dataOut[((my + i - pSize / 2) * cols + mx + j - pSize / 2)] = 240;
-                            }
+                            dataFil[((my + i) * cols + mx + j)] = 240;
+                        }
+                    }
+                    for (int j = -pSize; j <= pSize; j++)
+                    {
+                        int i =  0;
+                        if (((my + i) * cols + mx + j) < cols * rows && ((my + i) * cols + mx + j) > 0)
+                        {
+                            dataFil[((my + i) * cols + mx + j)] = 240;
                         }
                     }
 
                 }
             }
 
-            valFilter.SetTo(dataOut);
 
+            int mainC = 0, mainR = 0, addC = 0, addR = 0, mainChan = 0, addChan = 0;
+            mainChan = frame.NumberOfChannels;
+            addChan = valFilter.NumberOfChannels;
 
-            addFilter(frame, valFilter);
+            mainC = frame.Cols;
+            addC = valFilter.Cols;
+            mainR = frame.Rows;
+            addR = valFilter.Rows;
+
+            for (int i = mainChan - 1; i < mainR * mainC * mainChan; i += mainChan)
+            {
+                if (dataFil[i * addChan / mainChan] == 255)
+                {
+                    dataOut[i] = 0;
+                    dataOut[i - 1] = 0;
+                    dataOut[i - 2] = 255;
+                }
+                /**/if (data[i * addChan / mainChan] == 1)
+                {
+                    dataOut[i] = 255;
+                    dataOut[i - 1] = 0;
+                    dataOut[i - 2] = 0;
+                }
+                if (data[i * addChan / mainChan] == 2)
+                {
+                    dataOut[i] = 0;
+                    dataOut[i - 1] = 255;
+                    dataOut[i - 2] = 0;
+                }
+                if (data[i * addChan / mainChan] == 3)
+                {
+                    dataOut[i] = 255;
+                    dataOut[i - 1] = 255;
+                    dataOut[i - 2] = 0;
+                }
+                if (dataFil[i * addChan / mainChan] == 240)
+                {
+                    dataOut[i] = Convert.ToByte(255-dataOut[i]);
+                    dataOut[i - 1] = Convert.ToByte(255 - dataOut[i - 1]);
+                    dataOut[i - 2] = Convert.ToByte(255 - dataOut[i - 2]);
+                }
+            }
+
+            //valFilter.SetTo(dataFil);
+
+            frame.SetTo(dataOut);
+            //addFilter(frame, valFilter);
 
             //frameOut = new Mat();
 
